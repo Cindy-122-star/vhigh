@@ -6,6 +6,14 @@ const questions=[
   {text:'若要按文章建议开展野外记录，哪组变量最完整？',options:['发光位点与闪光节律特征','光的亮度、观察者年龄、天气预报','发光位点、闪光节律特征、信号应答事件'],answer:2},
   {text:'文章提醒三项观测变量不宜相互替代。以下哪项解释最符合这一提醒？',options:['只要记录发光位置，就能直接推断全部通讯过程','发光位置、节律编码和个体应答分别提供不同层面的证据','观察到闪光应答即可确定发光的具体生化机制'],answer:1}
 ];
+const takeaways=[
+  {title:'冷光机制',detail:'底物与酶促反应耦合，驱动光子释放。'},
+  {title:'节律编码',detail:'持续时长、间隔周期与脉冲排布共同构成信号。'},
+  {title:'通讯功能',detail:'物种特异性节律帮助同种个体识别与求偶。'},
+  {title:'双向互动',detail:'感知同类闪光后发出应答，形成反馈链路。'},
+  {title:'野外记录',detail:'记录发光位点、闪光节律与信号应答事件。'},
+  {title:'证据层次',detail:'机制、节律编码与个体应答是不同层面的证据。'}
+];
 const body=document.body,condition=body.dataset.condition,immediate=condition==='D_LOW',highValue=condition==='V_HIGH';
 const state={condition,scenarioShownAt:new Date().toISOString(),taskStartedAt:null,taskStartLatencyMs:null,answers:[],completedAt:null};
 let startTime=performance.now(),questionIndex=0,selected=null,score=0;
@@ -51,8 +59,15 @@ function submitAnswer(){
   if(correct)score++;
   state.answers.push({question:questionIndex+1,answer:selected,correct});
   const feedback=$('answer-feedback');
-  feedback.className='answer-feedback'+(immediate&&correct?' correct-feedback':immediate?'':' neutral');
-  feedback.textContent=immediate?(correct?'回答正确！':'答案已记录，请继续。'):'';
+  if(highValue){
+    feedback.className='answer-feedback value-reminder';
+    const unlocked=state.answers.length;
+    const lessonMarkup=takeaways.slice(0,unlocked).map((item,index)=>`<li class="value-lesson"><span>${String(index+1).padStart(2,'0')}</span><div><strong>${item.title}</strong><small>${item.detail}</small></div></li>`).join('');
+    feedback.innerHTML=`<div class="value-reminder-head"><span class="value-reminder-icon" aria-hidden="true">✦</span><div class="value-reminder-copy"><strong>完成全部题目后，你将获得</strong><b>可保存的萤火虫观察知识卡</b></div><span class="value-count">${unlocked}/6</span></div><div class="value-meter"><i style="width:${unlocked/6*100}%"></i></div><ol class="value-lessons">${lessonMarkup}</ol><small class="value-reminder-foot">每完成一道题，就为你的观察知识卡增加一条新发现。</small>`;
+  }else{
+    feedback.className='answer-feedback'+(immediate&&correct?' correct-feedback':immediate?'':' neutral');
+    feedback.textContent=immediate?(correct?'回答正确！':'答案已记录，请继续。'):'';
+  }
   questionIndex++;
   $('submit-answer').disabled=false;
   if(questionIndex===questions.length){
